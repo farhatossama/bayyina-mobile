@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, ToastAndroid } from 'react-native';
 import { Input, Button } from '@ui-kitten/components';
 import axios from 'axios';
-const BaseURI: any = "https://api-bayyina.baqiatawseyaa.com";
-const jwtDecode = require('jwt-decode');
-
-const LoginComponent = ({ onLogin }: { onLogin: any }) => {
+import { analyze_api_error_response } from '@/reuseable-functions/api_request_status';
+import { decodeJwt } from '@/reuseable-functions/decode_JWT';
+const BaseURI: any = process.env.EXPO_PUBLIC_API_URL;
+import Toast from 'react-native-root-toast';
+import { storeDataObject, storeDataString } from '@/globalStorage/asyncStorage';
+const LoginComponent = ({ isAuthorized }: { isAuthorized: (e: any) => void }) => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+    const showToast = (text: string) => {
+        const config: any = {
+            duration: Toast.durations.SHORT,
+            position: Toast.positions.TOP,
+        }
+        let toast = Toast.show(text, config);
+    };
     const onLoginRequest = async () => {
         const URI: string = `${BaseURI}/api/Auth/login`;
 
@@ -21,49 +30,37 @@ const LoginComponent = ({ onLogin }: { onLogin: any }) => {
             const res = await axios.post(URI, body, { headers: { 'Content-Type': 'application/json' } });
 
             if (res.data.success) {
+
+                isAuthorized(res.data.success)
+
+
                 let user: any = {
-                   // user: jwtDecode(res.data.token),
+                    user: decodeJwt(res.data.token),
                     token: res.data.token,
                     refreshToken: res.data.refreshToken,
                 };
-
                 const tokenExpireyDate = new Date();
                 const retfreshTokenExpireyDate = new Date();
                 tokenExpireyDate.setSeconds(tokenExpireyDate.getSeconds() + 3600);
                 retfreshTokenExpireyDate.setHours(tokenExpireyDate.getHours() + 480);
 
                 user = {
-                  //  user: { ...user.user, picture: "" },
+                    user: { ...user.user.payload },
                     token: res.data.token,
                     refreshToken: res.data.refreshToken,
                     tokenExpiration: tokenExpireyDate.toLocaleString(),
                     refreshTokenExpiration: retfreshTokenExpireyDate.toLocaleString(),
                 };
-
-                console.log(user);
-                Alert.alert('Login Successful', 'You have logged in successfully.');
-                // Optionally, call `onLogin` to handle post-login logic (e.g., navigation)
-                if (onLogin) onLogin(user);
+                await storeDataObject('user', user);
+                await storeDataString('bayyina_token', res.data.token);
+                showToast("أهلا، تكرم عينك");
             } else {
-                Alert.alert('Login Failed', res.data.errors[0] || 'Unknown error occurred.');
+                Alert.alert('فشل في تسجيل الدخول', res.data.errors[0] || 'Unknown error occurred.');
             }
-        } catch (error: any) {
-            if (axios.isAxiosError(error)) {
-                // Axios error
-                const status = error.response?.status;
-                const message = error.response?.data?.message || error.message;
+        } catch (e: any) {
+            const error: string = analyze_api_error_response(e)
+            Alert.alert('فشل في تسجيل الدخول', error || 'Unknown error occurred.');
 
-                console.error('Axios error:', error);
-
-                Alert.alert(
-                    'Error',
-                    `Status: ${status}\nMessage: ${message}`
-                );
-            } else {
-                // Non-Axios error
-                console.error('Error:', error);
-                Alert.alert('Error', 'An unexpected error occurred.');
-            }
         }
     };
 

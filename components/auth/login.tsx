@@ -5,13 +5,11 @@ import { ApplicationProvider, Layout, Text } from '@ui-kitten/components';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
-import  LoginComponent  from '@/components/auth/LoginComponent';
+import LoginComponent from '@/components/auth/LoginComponent';
 
-export default function LoginScreen() {
+export default function LoginScreen({ loggedInOnChange }: { loggedInOnChange: (e: any) => void }) {
   return (
-   <LoginComponent onLogin>
-
-   </LoginComponent>
+    <LoginComponent isAuthorized={(e: any) => loggedInOnChange(e)} />
   );
 }
 
