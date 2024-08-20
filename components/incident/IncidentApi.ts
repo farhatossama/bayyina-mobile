@@ -15,12 +15,12 @@ const showToast = (text: string) => {
     }
     let toast = Toast.show(text, config);
 };
-
+const tableParams: any = { sortField: "incidentStartDate", sortOrder: 'descend' };
 
 const getIncidents = async (page: number) => {
-    const token = await getObjectData('user');
+    const token = await getObjectData('auth');
     const config = { headers: { Authorization: `Bearer ${token.token}` } };
-    const URI: string = `${BaseURI}/api/Incidents?page=${page}&pageSize=${10}`
+    const URI: string = `${BaseURI}/api/Incidents?page=${page}&pageSize=${10}&orderBy=${tableParams.sortField}&order=${tableParams.sortOrder}`
     try {
         const result = await axios.get(URI, config)
         if (result.data.success) {

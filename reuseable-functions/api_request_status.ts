@@ -1,7 +1,7 @@
 
 function analyze_api_error_response(error: any, refreshTask?: any) {
     if (error?.response?.status === 400) {
-        return error?.response?.data?.message
+        return error?.response?.data
     }
     else if (error?.response?.status === 401) {
         return ('غير مصرح، الرجاء إعادة تسجيل الدخول')

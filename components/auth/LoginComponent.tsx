@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, ToastAndroid } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Alert, Image } from 'react-native';
 import { Input, Button } from '@ui-kitten/components';
 import axios from 'axios';
 import { analyze_api_error_response } from '@/reuseable-functions/api_request_status';
 import { decodeJwt } from '@/reuseable-functions/decode_JWT';
-const BaseURI: any = process.env.EXPO_PUBLIC_API_URL;
 import Toast from 'react-native-root-toast';
 import { storeDataObject, storeDataString } from '@/globalStorage/asyncStorage';
-const LoginComponent = ({ isAuthorized }: { isAuthorized: (e: any) => void }) => {
+import { authorized } from '@/features/authorize/authorizeSlice';
+import { useDispatch } from 'react-redux';
+import { router } from 'expo-router';
+
+
+const BaseURI: any = process.env.EXPO_PUBLIC_API_URL;
+
+const LoginComponent = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+
+    const dispatch = useDispatch();
+
 
     const showToast = (text: string) => {
         const config: any = {
@@ -18,6 +27,7 @@ const LoginComponent = ({ isAuthorized }: { isAuthorized: (e: any) => void }) =>
         }
         let toast = Toast.show(text, config);
     };
+
     const onLoginRequest = async () => {
         const URI: string = `${BaseURI}/api/Auth/login`;
 
@@ -31,28 +41,23 @@ const LoginComponent = ({ isAuthorized }: { isAuthorized: (e: any) => void }) =>
 
             if (res.data.success) {
 
-                isAuthorized(res.data.success)
-
-
-                let user: any = {
-                    user: decodeJwt(res.data.token),
-                    token: res.data.token,
-                    refreshToken: res.data.refreshToken,
-                };
                 const tokenExpireyDate = new Date();
                 const retfreshTokenExpireyDate = new Date();
                 tokenExpireyDate.setSeconds(tokenExpireyDate.getSeconds() + 3600);
                 retfreshTokenExpireyDate.setHours(tokenExpireyDate.getHours() + 480);
-
-                user = {
-                    user: { ...user.user.payload },
+                let tokenPayload: any = decodeJwt(res.data.token);
+                let authData = {
                     token: res.data.token,
                     refreshToken: res.data.refreshToken,
-                    tokenExpiration: tokenExpireyDate.toLocaleString(),
-                    refreshTokenExpiration: retfreshTokenExpireyDate.toLocaleString(),
+                    tokenExpiration: tokenExpireyDate.toString(),
+                    refreshTokenExpiration: retfreshTokenExpireyDate.toString(),
                 };
-                await storeDataObject('user', user);
-                await storeDataString('bayyina_token', res.data.token);
+                dispatch(authorized({ ...authData, user: tokenPayload, isLogged: true }));
+
+                await storeDataObject('user', tokenPayload);
+                await storeDataObject('auth', authData);
+                await storeDataObject('isLogged', { isLogged: true });
+                router.replace("/");
                 showToast("أهلا، تكرم عينك");
             } else {
                 Alert.alert('فشل في تسجيل الدخول', res.data.errors[0] || 'Unknown error occurred.');
@@ -66,28 +71,36 @@ const LoginComponent = ({ isAuthorized }: { isAuthorized: (e: any) => void }) =>
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
+            <Image
+                style={styles.img}
+                source={require('@/assets/images/logo.png')}
+            />
             <Input
                 onChangeText={(e: any) => setUsername(e)}
                 value={username}
                 style={styles.input}
-                placeholder='Username'
+                placeholder='الحساب'
             />
             <Input
                 onChangeText={(e: any) => setPassword(e)}
                 value={password}
                 style={styles.input}
-                placeholder='Password'
+                placeholder='كلمة السر'
                 secureTextEntry
             />
             <Button style={styles.button} onPress={onLoginRequest}>
-                Login
+                تسجيل الدخول
             </Button>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    img: {
+        alignSelf: 'center',
+        width: 230,
+        height: 230
+    },
     container: {
         flex: 1,
         justifyContent: 'center',

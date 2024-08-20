@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
-import { I18nManager, FlatList, StatusBar, SafeAreaView, StyleSheet, View, TouchableOpacity, RefreshControl, Share, Alert } from 'react-native';
+import { I18nManager, FlatList, StatusBar, SafeAreaView, StyleSheet, View, TouchableOpacity, RefreshControl, Share, Alert, useColorScheme } from 'react-native';
 import { Button, Card, Text } from '@ui-kitten/components';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Fontisto from '@expo/vector-icons/Fontisto';
+import { Colors } from '@/constants/Colors';
 
 export default function IncidentListComponent(props: any) {
+    const theme = useColorScheme() ?? 'light';
     const onShare = async () => {
         try {
             const result = await Share.share({
@@ -45,8 +47,9 @@ export default function IncidentListComponent(props: any) {
         </View>
     );
 
-    const renderItemFooter = (props: any): React.ReactElement => (
-        <Text {...props}>
+    const renderItemFooter = (props: any, data: any): React.ReactElement => (
+        <Text  {...props} style={styles.footerDate}>
+            تاريخ الحدث: {new Date(data.item?.incidentStartDate).toLocaleDateString()}
         </Text>
     );
 
@@ -54,10 +57,11 @@ export default function IncidentListComponent(props: any) {
         return (
 
             <Card
-                style={styles.item}
+                style={[styles.item]}
+
                 status='basic'
                 header={headerProps => renderItemHeader(headerProps, itemInfo.item.title)}
-                footer={renderItemFooter}
+                footer={(e: any) => renderItemFooter(e, itemInfo)}
             >
 
                 <Text style={styles.descriptionText}>
@@ -70,26 +74,24 @@ export default function IncidentListComponent(props: any) {
     }, [props.dataSource])
 
     return (
-        <SafeAreaView style={styles.container}>
-            <FlatList
-                keyExtractor={item => item.id + ""}
-                data={props.dataSource}
-                renderItem={renderItem}
-                onEndReached={loadMoreIncidents}
-                onEndReachedThreshold={0.1}
-                refreshControl={<RefreshControl refreshing={props.refreshing} onRefresh={props.refreshIncidents} />}
-                ListFooterComponent={() => (
-                    <TouchableOpacity
-                        disabled={props.noMore}
-                        style={styles.loadMoreButton}
-                        onPress={loadMoreIncidents}>
-                        <Text >
-                            {props.noMore ? 'تم تحميل جميع الأحداث' : props.loadingContent ? 'جاري التحميل...' : 'تحميل...'}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-            />
-        </SafeAreaView>
+        <FlatList
+            keyExtractor={item => item.id + ""}
+            data={props.dataSource}
+            renderItem={renderItem}
+            onEndReached={loadMoreIncidents}
+            onEndReachedThreshold={0.1}
+            refreshControl={<RefreshControl refreshing={props.refreshing} onRefresh={props.refreshIncidents} />}
+            ListFooterComponent={() => (
+                <TouchableOpacity
+                    disabled={props.noMore}
+                    style={styles.loadMoreButton}
+                    onPress={loadMoreIncidents}>
+                    <Text >
+                        {props.noMore ? 'تم تحميل جميع الأحداث' : props.loadingContent ? 'جاري التحميل...' : 'تحميل...'}
+                    </Text>
+                </TouchableOpacity>
+            )}
+        />
     );
 };
 
@@ -100,17 +102,14 @@ const styles = StyleSheet.create({
     },
     header: {
         flex: 1,
-        flexDirection: I18nManager.isRTL ?  'row':'row-reverse' ,
+        flexDirection: I18nManager.isRTL ? 'row' : 'row-reverse',
         justifyContent: 'space-around', // Distribute space between items
     },
     mainContainer: {
         flex: 1,
         marginTop: StatusBar.currentHeight || 0,
     },
-    container: {
-        flex: 1,
-        marginTop: StatusBar.currentHeight || 0,
-    },
+
     contentContainer: {
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -141,5 +140,8 @@ const styles = StyleSheet.create({
     },
     linkText: {
         fontSize: 16, // Adjust font size as needed
+    },
+    footerDate: {
+        writingDirection: I18nManager.isRTL ? "rtl" : "ltr",
     },
 });
