@@ -1,58 +1,92 @@
 import { StyleSheet, View, StatusBar, SafeAreaView, I18nManager } from 'react-native';
-import { Button, Card, Text } from '@ui-kitten/components';
+import { useEffect, useState, useCallback } from 'react';
+import { useIsFocused } from "@react-navigation/native";
+import { useAppSelector } from '@/redux/hooks';
 
 import IncidentListComponent from '@/components/incident/IncidentListComponent';
 import { getIncidents } from '@/components/incident/IncidentApi';
-import { useEffect, useState } from 'react';
-import { useIsFocused } from "@react-navigation/native";
+import IncidentFilter from '@/components/incident/IncidentFilter';
 
 export default function IncidentScreen() {
-  const [incidents, setIncidents] = useState<any>([]);
+  const [incidents, setIncidents] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [noMore, setNoMore] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterParams, setFilterParams] = useState<string>("");
   const isFocused = useIsFocused();
+  const token: string = useAppSelector((state) => state.authorized.token!);
 
-  const requestIncidents = async () => {
-    if (currentPage === 1) {
-      setRefreshing(true)
+  // Debounce search input to prevent too many API calls
+  const debounce = (func: (...args: any) => void, delay: number) => {
+    let timer: NodeJS.Timeout;
+    return function (...args: any) {
+      clearTimeout(timer);
+      timer = setTimeout(() => func(...args), delay);
+    };
+  };
+
+  const requestIncidents = useCallback(async (pageNumber = 1, isRefreshing = false) => {
+    if (isRefreshing) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
     }
-    setLoading(true)
-    const localIncidents: any[] = await getIncidents(currentPage)
-    if (localIncidents) {
 
-      if (localIncidents?.length === 0) {
+    try {
+      const localIncidents: any[] = await getIncidents(pageNumber, filterParams, search, token);
+
+      if (localIncidents.length === 0 && pageNumber !== 1) {
         setNoMore(true);
-        return
-      }
-      setLoading(false)
-      if (currentPage === 1) {
-        setIncidents(localIncidents)
-        setRefreshing(false)
       } else {
-
-        setIncidents((prevState: any) => [...prevState, ...localIncidents])
+        setNoMore(false);
+        setIncidents((prevIncidents) =>
+          pageNumber === 1 ? localIncidents : [...prevIncidents, ...localIncidents]
+        );
       }
-    }else{
-      setRefreshing(false)
+    } catch (error) {
+      console.error("Failed to fetch incidents:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  }, [filterParams, search, token]);
 
+  // Load incidents on component mount and when dependencies change
   useEffect(() => {
     if (isFocused) {
-      requestIncidents()
-    } else {
-      setCurrentPage(1)
+      requestIncidents(1, true);
     }
-  }, [isFocused, currentPage])
+  }, [isFocused, filterParams, search]);
 
+  // Handle pagination
+  const handleLoadMore = () => {
+    if (!loading && !noMore) {
+      setCurrentPage((prevPage) => prevPage + 1);
+      requestIncidents(currentPage + 1);
+    }
+  };
+
+  // Refresh incidents list
+  const handleRefresh = () => {
+    setCurrentPage(1);
+    requestIncidents(1, true);
+  };
+
+  // Debounce search to prevent multiple API calls
+  const handleSearchChange = debounce((text: string) => {
+    setSearch(text);
+  }, 500);
 
   return (
     <SafeAreaView style={styles.container2}>
-
       <View>
-        <Text style={styles.title} category='h6' >أحداث</Text>
+        <IncidentFilter
+          searchValueOnChange={handleSearchChange}
+          searchValue={search}
+          setFilterParams={(filter: string) => setFilterParams(filter)}
+        />
       </View>
 
       <IncidentListComponent
@@ -60,8 +94,8 @@ export default function IncidentScreen() {
         refreshing={refreshing}
         noMore={noMore}
         dataSource={incidents}
-        requestMore={() => setCurrentPage((prevState: number) => prevState + 1)}
-        refreshIncidents={() => setCurrentPage(1)}
+        requestMore={handleLoadMore}
+        refreshIncidents={handleRefresh}
       />
     </SafeAreaView>
   );

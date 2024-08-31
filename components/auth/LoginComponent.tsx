@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, Image } from 'react-native';
-import { Input, Button } from '@ui-kitten/components';
+import { View, Text, StyleSheet, Alert, Image, TextInput, Button } from 'react-native';
 import axios from 'axios';
 import { analyze_api_error_response } from '@/reuseable-functions/api_request_status';
 import { decodeJwt } from '@/reuseable-functions/decode_JWT';
@@ -75,21 +74,24 @@ const LoginComponent = () => {
                 style={styles.img}
                 source={require('@/assets/images/logo.png')}
             />
-            <Input
+            <TextInput
                 onChangeText={(e: any) => setUsername(e)}
                 value={username}
                 style={styles.input}
                 placeholder='الحساب'
             />
-            <Input
+            <TextInput
                 onChangeText={(e: any) => setPassword(e)}
                 value={password}
                 style={styles.input}
                 placeholder='كلمة السر'
                 secureTextEntry
             />
-            <Button style={styles.button} onPress={onLoginRequest}>
-                تسجيل الدخول
+            <Button
+                title="تسجيل الدخول"
+                // style={styles.button}
+                onPress={onLoginRequest}>
+
             </Button>
         </View>
     );

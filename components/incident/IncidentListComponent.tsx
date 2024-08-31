@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { I18nManager, FlatList, StatusBar, SafeAreaView, StyleSheet, View, TouchableOpacity, RefreshControl, Share, Alert, useColorScheme } from 'react-native';
-import { Button, Card, Text } from '@ui-kitten/components';
+import { I18nManager, FlatList, StatusBar, SafeAreaView, StyleSheet, View, TouchableOpacity, RefreshControl, Share, Text, Alert, useColorScheme } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { Colors } from '@/constants/Colors';
@@ -35,7 +34,7 @@ export default function IncidentListComponent(props: any) {
 
     const renderItemHeader = (props: any, title: string): React.ReactElement => (
         <View {...props} style={[...props?.style, styles.header]} >
-            <Text category='h6' style={styles.title}>
+            <Text style={styles.title}>
                 {title}
             </Text>
             <TouchableOpacity onPress={shareItem} style={styles.linkButton}>
@@ -56,21 +55,22 @@ export default function IncidentListComponent(props: any) {
     const renderItem = (itemInfo: any): React.ReactElement => {
         return (
 
-            <Card
+            <View
                 style={[styles.item]}
 
-                status='basic'
-                header={headerProps => renderItemHeader(headerProps, itemInfo.item.title)}
-                footer={(e: any) => renderItemFooter(e, itemInfo)}
+            // status='basic'
+            // header={headerProps => renderItemHeader(headerProps, itemInfo.item.title)}
+            // footer={(e: any) => renderItemFooter(e, itemInfo)}
             >
 
                 <Text style={styles.descriptionText}>
                     {itemInfo.item.description}
                 </Text>
-            </Card>
+            </View>
         )
     };
     useEffect(() => {
+        console.log('list count', props.dataSource.length)
     }, [props.dataSource])
 
     return (
@@ -78,16 +78,15 @@ export default function IncidentListComponent(props: any) {
             keyExtractor={item => item.id + ""}
             data={props.dataSource}
             renderItem={renderItem}
-            onEndReached={loadMoreIncidents}
-            onEndReachedThreshold={0.1}
+
             refreshControl={<RefreshControl refreshing={props.refreshing} onRefresh={props.refreshIncidents} />}
             ListFooterComponent={() => (
                 <TouchableOpacity
                     disabled={props.noMore}
-                    style={styles.loadMoreButton}
+                    style={[styles.loadMoreButton]}
                     onPress={loadMoreIncidents}>
-                    <Text >
-                        {props.noMore ? 'تم تحميل جميع الأحداث' : props.loadingContent ? 'جاري التحميل...' : 'تحميل...'}
+                    <Text style={[styles.btnTextColor]}>
+                        {props.noMore ? 'تم تحميل جميع الأحداث' : props.loadingContent ? 'جاري التحميل...' : 'تحميل'}
                     </Text>
                 </TouchableOpacity>
             )}
@@ -99,6 +98,9 @@ const styles = StyleSheet.create({
     loadMoreButton: {
         alignItems: 'center',
         padding: 16
+    },
+    btnTextColor: {
+        color: '#4096ff',
     },
     header: {
         flex: 1,

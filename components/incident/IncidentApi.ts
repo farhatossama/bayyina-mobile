@@ -17,10 +17,12 @@ const showToast = (text: string) => {
 };
 const tableParams: any = { sortField: "incidentStartDate", sortOrder: 'descend' };
 
-const getIncidents = async (page: number) => {
-    const token = await getObjectData('auth');
-    const config = { headers: { Authorization: `Bearer ${token.token}` } };
-    const URI: string = `${BaseURI}/api/Incidents?page=${page}&pageSize=${10}&orderBy=${tableParams.sortField}&order=${tableParams.sortOrder}`
+const getIncidents = async (page: number, filterParams: string, search: string, token: string) => {
+
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const keyword: any = search === "" ? `${filterParams}` : `&keyword=${search}${filterParams}`
+    console.log(keyword)
+    const URI: string = `${BaseURI}/api/Incidents?page=${page}&pageSize=${10}&orderBy=${tableParams.sortField}&order=${tableParams.sortOrder}${keyword}`
     try {
         const result = await axios.get(URI, config)
         if (result.data.success) {

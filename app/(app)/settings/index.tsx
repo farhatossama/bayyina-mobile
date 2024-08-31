@@ -1,5 +1,4 @@
-import { StyleSheet, View, StatusBar, SafeAreaView, I18nManager } from 'react-native';
-import { Button, Card, Text } from '@ui-kitten/components';
+import { StyleSheet, View, StatusBar, SafeAreaView, I18nManager,Text } from 'react-native';
 
 import IncidentListComponent from '@/components/incident/IncidentListComponent';
 import { getIncidents } from '@/components/incident/IncidentApi';

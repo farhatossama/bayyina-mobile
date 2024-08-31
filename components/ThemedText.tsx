@@ -1,4 +1,4 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
+import { Text, type TextProps, StyleSheet, I18nManager } from 'react-native';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 
@@ -20,6 +20,7 @@ export function ThemedText({
   return (
     <Text
       style={[
+        styles.main,
         { color },
         type === 'default' ? styles.default : undefined,
         type === 'title' ? styles.title : undefined,
@@ -34,6 +35,9 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
+  main: {
+    writingDirection: I18nManager.isRTL ? "rtl" : "ltr",
+  },
   default: {
     fontSize: 16,
     lineHeight: 24,

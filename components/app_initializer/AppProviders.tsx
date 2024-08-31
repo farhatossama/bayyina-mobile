@@ -4,8 +4,6 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
-import { ApplicationProvider, } from '@ui-kitten/components';
-import * as eva from '@eva-design/eva';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Platform, View } from 'react-native';
 import React, { useState } from 'react';
@@ -114,13 +112,11 @@ export default function AppProviders(props: any) {
     return (
         <Provider store={store}>
             <RootSiblingParent>
-                <ApplicationProvider {...eva} theme={eva.light}>
-                    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                        <View style={styles.container}>
-                            {props.children}
-                        </View>
-                    </ThemeProvider>
-                </ApplicationProvider>
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <View style={styles.container}>
+                        {props.children}
+                    </View>
+                </ThemeProvider>
             </RootSiblingParent>
         </Provider>
     );

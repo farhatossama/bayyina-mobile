@@ -19,7 +19,7 @@ export default function CustomDrawerContent(props: any) {
         <DrawerItemList {...props}></DrawerItemList>
       </DrawerContentScrollView>
       <Pressable onPress={logOut}>
-        <Text style={{ padding: 20, paddingBottom: 30, color: "#ffffff" }}>
+        <Text style={{ padding: 20, paddingBottom: 30, color: "#000" }}>
           تسجيل الخروج
         </Text>
       </Pressable>

@@ -47,7 +47,7 @@ function useIsLogged() {
                 tokenExpiration: tokenNewDate.toString(),
                 refreshTokenExpiration: refreshDateNew.toString(),
             };
-            console.log(authData)
+            showToast('تم تجديد الصلاحية');
             dispatch(updateRefreshToken(authData))
         } catch (error: any) {
             unAuthorized()
